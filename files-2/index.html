@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stevenson Chess</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Impact&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chess</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Impact&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+
+
+<div id="mode-select">
+  <div id="header" style="background:transparent;border:none;box-shadow:none;position:relative;display:flex;flex-direction:column;align-items:center;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <h1>♟ STEVENSON CHESS</h1>
+      <button onclick="openSettings()" title="Settings" style="background:rgba(245,200,0,0.12);color:var(--yellow);border:2px solid rgba(245,200,0,0.5);font-size:22px;width:44px;height:44px;cursor:pointer;box-shadow:3px 3px 0 #000;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;">⚙</button>
+    </div>
+    <div class="header-sub">A Private Club for Steves · Est. 2026</div>
+  </div>
+  <div id="mode-select-cards">
+
+    <div class="mode-card mode-card-2p" onclick="startMode('2p')">
+      <div class="mode-card-icon">♟</div>
+      <div class="mode-card-title">2 Player</div>
+      <div class="mode-card-tag">CLASSIC</div>
+      <div class="mode-card-desc">Human vs Human<br>or vs a Bot.<br>All rules apply.</div>
+    </div>
+
+    <div class="mode-card mode-card-4p" onclick="startMode('4p')">
+      <div class="mode-card-icon">♜</div>
+      <div class="mode-card-title">4 Player</div>
+      <div class="mode-card-tag">TEAM BATTLE</div>
+      <div class="mode-card-desc">14×14 board.<br>Four players,<br>two-team warfare.</div>
+    </div>
+
+    <div class="mode-card mode-card-ck" onclick="startMode('chesskers')">
+      <div class="mode-card-icon">⚔️</div>
+      <div class="mode-card-title">Chesskers</div>
+      <div class="mode-card-tag">HYBRID</div>
+      <div class="mode-card-desc">Chess vs Checkers.<br>Two rulesets clash.<br>Human or AI both sides.</div>
+    </div>
+
+    <div class="mode-card mode-card-rdb" onclick="startMode('rdb')">
+      <div class="mode-card-icon">💀</div>
+      <div class="mode-card-title">Resurrection</div>
+      <div class="mode-card-tag">DOUBLE BUGHOUSE</div>
+      <div class="mode-card-desc">Two boards. Pieces<br>respawn &amp; teleport.<br>Simultaneous mate wins.</div>
+    </div>
+
+    <div class="mode-card mode-card-sb" onclick="startMode('sandbox')">
+      <div class="mode-card-icon">🧪</div>
+      <div class="mode-card-title">Sandbox</div>
+      <div class="mode-card-tag">FREE PLAY</div>
+      <div class="mode-card-desc">Edit the board.<br>No rules enforced.<br>Cheats &amp; the Lab.</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="cheat-banner"></div>
+
+<!-- Persistent settings button — visible across all modes -->
+<button id="global-settings-btn" onclick="openSettings()" title="Settings"
+  style="position:fixed;bottom:18px;right:18px;z-index:4999;
+    width:44px;height:44px;border-radius:0;
+    background:var(--blue-dark);color:var(--yellow);
+    border:3px solid var(--yellow);font-size:20px;
+    cursor:pointer;box-shadow:3px 3px 0 #000;
+    display:flex;align-items:center;justify-content:center;
+    transition:background 0.1s,transform 0.1s;
+    font-family:serif;line-height:1;">⚙</button>
+
+<div id="game-over-overlay">
+  <button id="game-over-close" onclick="document.getElementById('game-over-overlay').className=''" style="position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.5);color:#fff;font-size:22px;font-weight:700;width:38px;height:38px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:2px 2px 0 rgba(0,0,0,0.3);z-index:1001;">✕</button>
+  <div id="game-over-word">CHECKMATE</div>
+  <div id="game-over-sub">Better luck next time</div>
+  <button id="game-over-btn" onclick="closeOverlayAndReset()">Play Again</button>
+</div>
+
+<div id="app">
+  <div id="header">
+    <h1>♟ STEVENSON CHESS</h1>
+    <div class="header-sub">A Private Club for Steves · Est. 2026</div>
+  </div>
+  <div id="status-bar">
+    <div id="status-left">
+      <div id="status">White to move</div>
+      <div id="msg"></div>
+    </div>
+    <div id="eval-bar-wrap" style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;min-width:80px;">
+      <div style="font-family:'Courier Prime',monospace;font-size:9px;color:#888;letter-spacing:0.1em;text-transform:uppercase;">Eval</div>
+      <div style="width:80px;height:12px;background:#333;border:1px solid #555;border-radius:2px;overflow:hidden;position:relative;">
+        <div id="eval-bar-fill" style="height:100%;width:50%;background:linear-gradient(90deg,#888 0%,#fff 100%);transition:width 0.3s ease;border-radius:2px;"></div>
+      </div>
+      <div id="eval-bar-label" style="font-family:'Courier Prime',monospace;font-size:9px;color:#aaa;">=0.0</div>
+    </div>
+
+  </div>
+  <div id="white-speech-row" class="bot-speech-row white-speech">
+    <div id="white-speech-avatar" class="bot-speech-avatar"></div>
+    <div id="white-speech-name" class="bot-speech-name"></div>
+    <div id="white-speech-bubble" class="bot-speech-bubble"></div>
+  </div>
+  <div id="board-area">
+    <div id="main-layout">
+      <!-- MOVE HISTORY PANEL -->
+      <div id="move-history-panel">
+        <div id="move-history-header">📋 Move Log</div>
+        <div id="move-list"></div>
+        <div id="move-history-footer" id="move-count-footer">—</div>
+      </div>
+
+      <!-- BOARD SECTION -->
+      <div id="board-wrap">
+        <div id="ranks"></div>
+        <div>
+          <div id="board-container">
+            <div id="board"></div>
+            <div id="piece-layer"></div>
+            <div id="wall-overlay"></div>
+            <div id="b2-bomber"></div>
+            <div id="don-tank"></div>
+            <div id="s-overlay"><span id="s-letter">S</span></div>
+            <div id="biden-sleep-overlay" onclick="bidenWake()">
+              <div id="biden-zzz">😴</div>
+              <div id="biden-sleep-label">Click to wake him up</div>
+            </div>
+            <div id="lag-bar-overlay">
+              <div id="lag-bar-label">Loading... Please wait</div>
+              <div id="lag-bar-track"><div id="lag-bar-fill"></div></div>
+            </div>
+            <div id="falcon-countdown-label"></div>
+          </div>
+          <div id="files"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="black-speech-row" class="bot-speech-row black-speech">
+    <div id="black-speech-avatar" class="bot-speech-avatar"></div>
+    <div id="black-speech-name" class="bot-speech-name"></div>
+    <div id="black-speech-bubble" class="bot-speech-bubble"></div>
+  </div>
+  <div id="controls-bar">
+    <button onclick="showModeSelect()">◀ Menu</button>
+    <button onclick="resetGame()">New Game</button>
+    <button onclick="undoMove()">Undo</button>
+    <button onclick="togglePicker()">Colors</button>
+    <button id="edit-board-btn" onclick="openSandboxEditor()" style="display:none;background:#22cc66;color:#000;">🎨 Edit Board</button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-family:'EB Garamond',Georgia,serif;font-size:12px;color:var(--yellow);letter-spacing:0.08em;text-transform:uppercase;">Speed</span>
+      <input type="range" id="speed-slider" min="1" max="5" value="3" step="1"
+        style="width:70px;accent-color:var(--yellow);cursor:pointer;"
+        oninput="updateBotSpeed(this.value)">
+      <span id="speed-label" style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--yellow);width:28px;">▶▶</span>
+    </div>
+    <div id="picker"><div id="theme-swatches" style="display:flex;gap:5px;align-items:center;"></div></div>
+  </div>
+  <div id="s-color-bar">
+    <span class="s-color-label">S Color</span>
+    <div style="display:flex;gap:6px;align-items:center;" id="s-swatches"></div>
+  </div>
+  <div id="bot-row" style="flex-wrap:wrap;gap:6px;">
+    <span class="bot-label">White</span>
+    <button onclick="toggleBotMenu('w')" id="bot-btn-w" style="font-size:12px;padding:4px 10px;">👤 Human ▾</button>
+    <span class="bot-label" style="margin-left:8px;">Black</span>
+    <button onclick="toggleBotMenu('b')" id="bot-btn-b" style="font-size:12px;padding:4px 10px;">Bob (300) ▾</button>
+    <div id="bot-menu" style="left:auto;"><div id="bot-buttons"></div></div>
+  </div>
+  <div id="unlock-row" style="display:none;">
+    <span class="unlock-label">🔒 Unlock</span>
+    <input id="unlock-input" type="text" maxlength="20" placeholder="enter code..." autocomplete="off" spellcheck="false" />
+    <button id="unlock-btn" onclick="tryUnlockCode()">Enter</button>
+  </div>
+  </div>
+
+<!-- Playground sidebar toggle -->
+<button id="pg-toggle-btn" onclick="togglePlayground()">⚙ Lab</button>
+
+<!-- Playground sidebar -->
+<div id="playground-sidebar">
+  <div id="playground-sidebar-header">🧪 Playground</div>
+  <!-- Map Picker -->
+  <div class="pg-section">
+    <div class="pg-section-title">🗺 Board</div>
+    <button class="pg-btn" onclick="showSandboxMapPicker()" style="border-color:#22cc66;color:#66ffaa;">🗺 Change Map</button>
+  </div>
+  <!-- Trump -->
+  <div class="pg-section">
+    <div class="pg-section-title">🇺🇸 Trump</div>
+    <button class="pg-btn trump-btn" onclick="pg_trumpBomber()">✈️ B-2 Bomber</button>
+    <button class="pg-btn trump-btn" onclick="pg_trumpWall()">🧱 Wall / Deport</button>
+  </div>
+  <!-- Biden -->
+  <div class="pg-section">
+    <div class="pg-section-title">🫘 Biden</div>
+    <button class="pg-btn biden-btn" onclick="pg_bidenSleep()">😴 Sleep Mode</button>
+    <button class="pg-btn biden-btn" onclick="pg_bidenLaserTeleport()">⚡ Laser Teleport</button>
+    <button class="pg-btn biden-btn" onclick="pg_bidenIceCream()">🍦 Ice Cream Drop</button>
+    <button class="pg-btn biden-btn" onclick="pg_bidenClearReset()">💥 Clear Reset</button>
+    <button class="pg-btn biden-btn" onclick="pg_bidenDroneStrike()">🎯 Drone Strike</button>
+    <button class="pg-btn biden-btn" onclick="obamadroneStrike()">🎯 Obama Drone Strike</button>
+    <button class="pg-btn biden-btn" onclick="pg_bidenLag()">⏳ Lag Blunder</button>
+  </div>
+  <!-- Elon -->
+  <div class="pg-section">
+    <div class="pg-section-title">🚀 Elon</div>
+    <button class="pg-btn elon-btn" onclick="pg_elonFalcon()">🚀 Falcon Rocket</button>
+    <button class="pg-btn elon-btn" onclick="pg_elonXPopup()">𝕏 X Pop-Up</button>
+  </div>
+</div>
+
+<!-- Elon X pop-up modal -->
+<div id="elon-popup-overlay" onclick="elonDismissPopup(event)">
+  <div id="elon-popup-box">
+    <div id="elon-popup-x-logo">𝕏</div>
+    <div id="elon-popup-msg"></div>
+    <button id="elon-popup-dismiss" onclick="elonDismissPopup(event)">Dismiss</button>
+  </div>
+</div>
+
+
+
+<!-- ══ SETTINGS OVERLAY ══ -->
+<div id="settings-overlay" style="display:none;position:fixed;inset:0;z-index:6500;background:rgba(5,8,90,0.97);background-image:repeating-linear-gradient(45deg,transparent 0px,transparent 18px,rgba(0,0,60,0.35) 18px,rgba(0,0,60,0.35) 36px);flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:30px 16px 50px;gap:0;">
+
+  <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:0;">
+
+    <!-- Header -->
+    <div style="background:var(--blue-dark);border:4px solid var(--yellow);border-bottom:none;box-shadow:4px 4px 0 #000;padding:12px 20px 8px;text-align:center;">
+      <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.6rem;color:var(--yellow);text-transform:uppercase;letter-spacing:3px;text-shadow:3px 3px 0 #000;">⚙ Settings</div>
+      <div style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:var(--cream);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Stevenson Chess Club · Options</div>
+    </div>
+
+    <!-- Body -->
+    <div style="background:var(--black);border:4px solid var(--yellow);box-shadow:4px 4px 0 #000;padding:0;">
+
+      <!-- Section: Chat & Bots -->
+      <div class="settings-section">
+        <div class="settings-section-title">💬 Chat &amp; Bots</div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-name">Speech Bubbles</div>
+            <div class="settings-row-desc">Bot dialogue shown above / below the board</div>
+          </div>
+          <button class="settings-toggle" id="toggle-speech-bubbles" onclick="settingsToggle('speechBubbles')">ON</button>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-name">Chat Log Panel</div>
+            <div class="settings-row-desc">Side panel logging all bot messages</div>
+          </div>
+          <button class="settings-toggle" id="toggle-chat-log" onclick="settingsToggle('chatLog')">ON</button>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-name">4P Corner Speech</div>
+            <div class="settings-row-desc">Bot speech bubbles in 4-player mode</div>
+          </div>
+          <button class="settings-toggle" id="toggle-4p-speech" onclick="settingsToggle('fp4pSpeech')">ON</button>
+        </div>
+      </div>
+
+      <!-- Section: Game -->
+      <div class="settings-section">
+        <div class="settings-section-title">♟ Game</div>
+
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-name">Move Analysis</div>
+            <div class="settings-row-desc">Shows ✅/🔶/❌ move quality summary after games</div>
+          </div>
+          <button class="settings-toggle" id="toggle-teacher" onclick="settingsToggle('teacher')">ON</button>
+        </div>
+
+      </div>
+
+      <!-- Section: Unlock Codes -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔒 Unlock Secret Bots</div>
+        <div style="padding:6px 14px 10px;font-family:'EB Garamond',Georgia,serif;font-size:12px;color:rgba(245,200,0,0.55);letter-spacing:0.05em;">
+          Type a code and press Enter to unlock hidden bots.
+        </div>
+        <div style="padding:0 14px 14px;display:flex;gap:8px;align-items:center;">
+          <input id="settings-unlock-input" type="text" maxlength="20" placeholder="enter code..."
+            autocomplete="off" spellcheck="false"
+            style="font-family:'EB Garamond',Georgia,serif;font-size:13px;background:#111;color:var(--cream);border:2px solid rgba(245,200,0,0.4);padding:5px 10px;outline:none;flex:1;letter-spacing:0.08em;"
+            onkeydown="if(event.key==='Enter')settingsUnlock()" />
+          <button onclick="settingsUnlock()" style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:var(--yellow);color:var(--black);border:3px solid #000;padding:5px 14px;cursor:pointer;box-shadow:2px 2px 0 #000;">Enter</button>
+        </div>
+        <div id="settings-unlock-msg" style="padding:0 14px 10px;font-family:'EB Garamond',Georgia,serif;font-size:12px;color:#44ee88;min-height:18px;letter-spacing:0.05em;"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background:var(--blue-dark);border:4px solid var(--yellow);border-top:none;box-shadow:4px 4px 0 #000;padding:10px 16px;display:flex;justify-content:center;">
+      <button onclick="closeSettings()" style="font-family:'EB Garamond',Georgia,serif;font-size:14px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:var(--yellow);color:var(--black);border:3px solid #000;padding:7px 28px;cursor:pointer;box-shadow:3px 3px 0 #000;">✓ Done</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SANDBOX BOARD EDITOR OVERLAY -->
+<div id="sandbox-editor">
+
+  <!-- Header -->
+  <div style="text-align:center;width:100%;max-width:900px;">
+    <div id="sandbox-editor-title">🎨 Board Editor</div>
+    <div id="sandbox-editor-sub">Click a piece • then click a square to place it • or drag &amp; drop</div>
+  </div>
+
+  <!-- Board tabs -->
+  <div id="sb-tabs" style="display:flex;gap:0;border:3px solid var(--yellow);box-shadow:3px 3px 0 #000;overflow:hidden;">
+    <div class="sb-tab active" id="sb-tab-2p" onclick="sbSwitchTab('2p')">♟ 2-Player Board</div>
+    <div class="sb-tab" id="sb-tab-4p" onclick="sbSwitchTab('4p')">♜ 4-Player Board</div>
+  </div>
+
+  <!-- Main body -->
+  <div id="sandbox-editor-body">
+
+    <!-- LEFT: Piece Palette -->
+    <div id="sandbox-palette">
+
+      <div id="sb-palette-chess">
+        <div class="palette-section-title" style="color:#cce0ff;">⬜ White Chess</div>
+        <div class="palette-row" id="palette-white-chess"></div>
+        <div class="palette-section-title" style="color:#aaa;margin-top:6px;">⬛ Black Chess</div>
+        <div class="palette-row" id="palette-black-chess"></div>
+        <div class="palette-section-title" style="color:#ff6644;margin-top:6px;">🔴 Red Checkers</div>
+        <div class="palette-row" id="palette-red-checkers"></div>
+        <div class="palette-section-title" style="color:#cce0ff;margin-top:6px;">⬜ White Checkers</div>
+        <div class="palette-row" id="palette-white-checkers"></div>
+      </div>
+
+      <div id="sb-palette-4p" style="display:none;">
+        <div class="palette-section-title" style="color:#e06050;">🔴 Red (Player 0)</div>
+        <div class="palette-row" id="palette-4p-red"></div>
+        <div class="palette-section-title" style="color:#6090ee;margin-top:6px;">🔵 Blue (Player 1)</div>
+        <div class="palette-row" id="palette-4p-blue"></div>
+        <div class="palette-section-title" style="color:#f5c800;margin-top:6px;">🟡 Yellow (Player 2)</div>
+        <div class="palette-row" id="palette-4p-yellow"></div>
+        <div class="palette-section-title" style="color:#44bb66;margin-top:6px;">🟢 Green (Player 3)</div>
+        <div class="palette-row" id="palette-4p-green"></div>
+      </div>
+
+      <div style="margin-top:8px;border-top:1px solid rgba(245,200,0,0.2);padding-top:8px;">
+        <div class="palette-section-title">🛠 Tools</div>
+        <div class="palette-row">
+          <div id="palette-erase" title="Erase piece" onclick="sbSelectTool(null)">🗑</div>
+        </div>
+      </div>
+
+      <div id="sb-status">Select a piece to place</div>
+    </div>
+
+    <!-- RIGHT: Board -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+
+      <!-- Board action buttons above board -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <button class="sb-action-btn sb-board-btn" onclick="sbResetToGame()" title="Reload the current game state">↩ Reset Board</button>
+        <button class="sb-action-btn sb-board-btn danger" onclick="sbClearBoard()" title="Wipe all pieces">🗑 Clear Board</button>
+        <button class="sb-action-btn sb-board-btn" onclick="sbSetupDefault()" title="Place standard starting position">⭐ Default Setup</button>
+      </div>
+
+      <div id="sandbox-board-wrap">
+        <div id="sandbox-board-squares"></div>
+        <div id="sandbox-board-pieces"></div>
+      </div>
+
+      <!-- Apply button below board -->
+      <button class="sb-action-btn" style="font-size:15px;padding:8px 30px;background:#22cc66;color:#000;border-color:#000;" onclick="sbApplyToGame()">✅ Apply &amp; Play</button>
+      <button class="sb-action-btn cancel" onclick="closeSandboxEditor()">✕ Cancel / Close</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SANDBOX MAP PICKER MODAL -->
+<div id="sandbox-map-picker">
+  <h2>🗺 Choose Your Map</h2>
+  <div class="map-sub">Sandbox Mode — Pick a starting layout</div>
+  <div id="sandbox-map-grid">
+    <!-- Cards injected by JS -->
+  </div>
+  <button onclick="sandboxPickMap(null)" style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:rgba(245,200,0,0.12);color:rgba(245,200,0,0.5);border:2px solid rgba(245,200,0,0.25);padding:6px 18px;cursor:pointer;margin-top:4px;">✕ Cancel</button>
+</div>
+
+
+<!-- 4-PLAYER CHESS OVERLAY -->
+<div id="fourp-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0a0fa8;background-image:repeating-linear-gradient(45deg,transparent 0px,transparent 18px,rgba(0,0,60,0.35) 18px,rgba(0,0,60,0.35) 36px);overflow:auto;padding:20px 10px 40px;flex-direction:column;align-items:center;justify-content:flex-start;">
+  <div style="width:100%;max-width:98vw;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:0;">
+    <div style="width:100%;text-align:center;padding:10px 20px 6px;background:#0a0fa8;border:4px solid #f5c800;border-bottom:none;box-shadow:4px 4px 0 #000;">
+      <h1 style="font-family:'EB Garamond',Georgia,serif;font-size:1.6rem;color:#f5c800;text-transform:uppercase;letter-spacing:3px;text-shadow:3px 3px 0 #000;">♟ 4-PLAYER CHESS</h1>
+      <div style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:#f5f0d8;letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Stevenson Club Edition</div>
+    </div>
+    <div style="width:100%;padding:5px 16px;background:#f5f0d8;border-left:4px solid #f5c800;border-right:4px solid #f5c800;border-top:2px solid #000;border-bottom:2px solid #000;display:flex;justify-content:space-between;align-items:center;">
+      <div id="fourp-status" style="font-family:'EB Garamond',Georgia,serif;font-size:13px;letter-spacing:0.1em;color:#0a0fa8;text-transform:uppercase;">Red to move</div>
+      <div id="fourp-msg" style="font-family:'EB Garamond',Georgia,serif;font-size:13px;letter-spacing:0.1em;color:#cc0000;text-transform:uppercase;"></div>
+    </div>
+    <div style="padding:10px;background:#0a0fa8;border-left:4px solid #f5c800;border-right:4px solid #f5c800;">
+      <div style="display:grid;grid-template-columns:90px 1fr 90px;grid-template-rows:auto 1fr auto;gap:6px;align-items:stretch;">
+
+        <!-- Row 1 top-left: Yellow speech (player 2, plays from top) -->
+        <div style="grid-column:1;grid-row:1;display:flex;align-items:flex-end;justify-content:flex-end;padding-bottom:4px;">
+          <div id="fp-speech-2" style="display:none;background:#fffdf0;border:2px solid #cccccc;border-radius:8px;padding:6px 10px;font-family:'EB Garamond',Georgia,serif;font-size:13px;color:#111;line-height:1.4;word-break:break-word;box-shadow:2px 2px 0 rgba(0,0,0,0.3);"></div>
+        </div>
+        <!-- Row 1 top-right: empty -->
+        <div style="grid-column:2/4;grid-row:1;"></div>
+
+        <!-- Row 2 left: Blue speech (player 1, plays from left) -->
+        <div style="grid-column:1;grid-row:2;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;">
+          <div id="fp-speech-1" style="display:none;background:#fffdf0;border:2px solid #2060cc;border-radius:8px;padding:6px 10px;font-family:'EB Garamond',Georgia,serif;font-size:13px;color:#111;line-height:1.4;word-break:break-word;box-shadow:2px 2px 0 rgba(0,0,0,0.3);"></div>
+        </div>
+
+        <!-- Row 2 center: Board canvas -->
+        <div id="fourp-board-wrap" style="grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:center;padding:18px;">
+          <canvas id="fourp-canvas" style="display:block;cursor:pointer;max-width:100%;overflow:visible;"></canvas>
+        </div>
+
+        <!-- Row 2 right: Green speech (player 3, plays from right) -->
+        <div style="grid-column:3;grid-row:2;display:flex;align-items:center;justify-content:flex-start;padding-left:4px;">
+          <div id="fp-speech-3" style="display:none;background:#fffdf0;border:2px solid #555555;border-radius:8px;padding:6px 10px;font-family:'EB Garamond',Georgia,serif;font-size:13px;color:#111;line-height:1.4;word-break:break-word;box-shadow:2px 2px 0 rgba(0,0,0,0.3);"></div>
+        </div>
+
+        <!-- Row 3 bottom-left: Red speech (player 0, plays from bottom) -->
+        <div style="grid-column:1;grid-row:3;display:flex;align-items:flex-start;justify-content:flex-end;padding-top:4px;">
+          <div id="fp-speech-0" style="display:none;background:#fffdf0;border:2px solid #e03020;border-radius:8px;padding:6px 10px;font-family:'EB Garamond',Georgia,serif;font-size:13px;color:#111;line-height:1.4;word-break:break-word;box-shadow:2px 2px 0 rgba(0,0,0,0.3);"></div>
+        </div>
+        <!-- Row 3 bottom-right: empty -->
+        <div style="grid-column:2/4;grid-row:3;"></div>
+
+      </div>
+    </div>
+    <!-- 4P Dialogue Log -->
+    <div style="width:100%;background:#0a0a0a;border:4px solid #f5c800;border-top:none;display:flex;flex-direction:column;overflow:hidden;max-height:130px;box-shadow:4px 4px 0 #000;">
+      <div style="background:#f5c800;color:#000;font-family:'EB Garamond',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-align:center;padding:4px 8px;border-bottom:2px solid #000;flex-shrink:0;">💬 Dialogue</div>
+      <div id="fp-dialogue-list" style="flex:1;overflow-y:auto;padding:3px 0;scroll-behavior:smooth;"></div>
+    </div>
+
+    <!-- 4P Move Log -->
+    <div style="width:100%;background:#0a0a0a;border:4px solid #f5c800;border-top:none;box-shadow:4px 4px 0 #000;display:flex;flex-direction:column;overflow:hidden;min-height:80px;max-height:160px;">
+      <div style="background:#f5c800;color:#000;font-family:'EB Garamond',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-align:center;padding:4px 8px;border-bottom:2px solid #000;flex-shrink:0;">📋 Move Log</div>
+      <div id="fourp-move-list" style="flex:1;overflow-y:auto;padding:4px 0;scroll-behavior:smooth;"></div>
+      <div id="fourp-move-footer" style="padding:3px 6px;border-top:1px solid rgba(245,200,0,0.2);font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(245,200,0,0.5);text-align:center;flex-shrink:0;">—</div>
+    </div>
+
+    <!-- 4P Captured Pieces -->
+    <div style="width:100%;background:#0a0a0a;border:4px solid #f5c800;border-top:none;box-shadow:4px 4px 0 #000;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="background:#f5c800;color:#000;font-family:'EB Garamond',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-align:center;padding:4px 8px;border-bottom:2px solid #000;flex-shrink:0;">⚔️ Pieces Captured</div>
+      <div id="fourp-captured-list" style="padding:2px 0;"><div style="color:rgba(245,200,0,0.3);font-size:11px;font-style:italic;text-align:center;padding:8px;font-family:'EB Garamond',Georgia,serif;">No captures yet</div></div>
+    </div>
+
+    <div style="width:100%;background:#0a0fa8;border:4px solid #f5c800;border-top:3px solid #c49a00;padding:8px 12px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:4px 4px 0 #000;margin-top:4px;">
+      <button onclick="fourpReset()">New Game</button>
+      <button onclick="showModeSelect()">◀ Menu</button>
+      <button onclick="openSettings()" style="background:rgba(245,200,0,0.15);color:#f5c800;border:3px solid rgba(245,200,0,0.4);">⚙</button>
+      <button onclick="toggleFpPicker()">Colors</button>
+      <button id="fp-speech-toggle-btn" onclick="toggleFpSpeech()">💬 Chat: On</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:12px;color:#f5c800;letter-spacing:0.08em;text-transform:uppercase;">Speed</span>
+        <input type="range" min="1" max="5" value="3" step="1"
+          style="width:70px;accent-color:#f5c800;cursor:pointer;"
+          oninput="updateBotSpeed(this.value)">
+        <span id="speed-label-4p" style="font-family:'Courier Prime',monospace;font-size:12px;color:#f5c800;width:28px;">▶▶</span>
+      </div>
+    </div>
+    <div id="fourp-picker" style="display:none;width:100%;background:#0a0fa8;border-left:4px solid #f5c800;border-right:4px solid #f5c800;border-bottom:2px solid #c49a00;padding:6px 12px;justify-content:center;flex-wrap:wrap;gap:5px;align-items:center;">
+      <div id="fourp-swatches" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"></div>
+    </div>
+    <!-- Per-player bot selectors -->
+    <div style="width:100%;background:#0a0a0a;border:4px solid #f5c800;border-top:none;padding:10px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:4px 4px 0 #000;">
+      <div style="display:flex;gap:4px;align-items:center;padding:0 0 4px 0;border-bottom:1px solid rgba(245,200,0,0.2);">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:rgba(245,200,0,0.6);letter-spacing:0.12em;text-transform:uppercase;flex:0 0 70px;">Player</span>
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:rgba(245,200,0,0.6);letter-spacing:0.12em;text-transform:uppercase;flex:1;">Bot</span>
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:rgba(245,200,0,0.6);letter-spacing:0.12em;text-transform:uppercase;width:80px;text-align:center;">Team</span>
+      </div>
+      <div id="fourp-t0" style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;color:#e03020;width:70px;letter-spacing:0.08em;">● RED</span>
+        <div style="position:relative;flex:1;">
+          <button id="fourp-bot0-btn" onclick="toggleFpBotMenu(0)" style="width:100%;text-align:left;font-size:12px;padding:3px 10px;">You (Human) ▾</button>
+          <div id="fourp-bot0-menu" style="display:none;position:absolute;bottom:110%;left:0;z-index:99;background:#f5f0d8;border:3px solid #000;box-shadow:4px 4px 0 #000;min-width:180px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div style="display:flex;gap:3px;width:110px;justify-content:center;">
+          <button id="fp-team0-a" onclick="fpSetTeam(0,'A')" style="padding:2px 6px;font-size:11px;background:#c0392b;color:#fff;border:2px solid #000;">A</button>
+          <button id="fp-team0-b" onclick="fpSetTeam(0,'B')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">B</button>
+          <button id="fp-team0-c" onclick="fpSetTeam(0,'C')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">C</button>
+          <button id="fp-team0-d" onclick="fpSetTeam(0,'D')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">D</button>
+        </div>
+      </div>
+      <div id="fourp-t1" style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;color:#2060cc;width:70px;letter-spacing:0.08em;">● BLUE</span>
+        <div style="position:relative;flex:1;">
+          <button id="fourp-bot1-btn" onclick="toggleFpBotMenu(1)" style="width:100%;text-align:left;font-size:12px;padding:3px 10px;">Bob (300) ▾</button>
+          <div id="fourp-bot1-menu" style="display:none;position:absolute;bottom:110%;left:0;z-index:99;background:#f5f0d8;border:3px solid #000;box-shadow:4px 4px 0 #000;min-width:180px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div style="display:flex;gap:3px;width:110px;justify-content:center;">
+          <button id="fp-team1-a" onclick="fpSetTeam(1,'A')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">A</button>
+          <button id="fp-team1-b" onclick="fpSetTeam(1,'B')" style="padding:2px 6px;font-size:11px;background:#1a3a7a;color:#fff;border:2px solid #000;">B</button>
+          <button id="fp-team1-c" onclick="fpSetTeam(1,'C')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">C</button>
+          <button id="fp-team1-d" onclick="fpSetTeam(1,'D')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">D</button>
+        </div>
+      </div>
+      <div id="fourp-t2" style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;color:#cccccc;width:70px;letter-spacing:0.08em;">● WHITE</span>
+        <div style="position:relative;flex:1;">
+          <button id="fourp-bot2-btn" onclick="toggleFpBotMenu(2)" style="width:100%;text-align:left;font-size:12px;padding:3px 10px;">Dave (500) ▾</button>
+          <div id="fourp-bot2-menu" style="display:none;position:absolute;bottom:110%;left:0;z-index:99;background:#f5f0d8;border:3px solid #000;box-shadow:4px 4px 0 #000;min-width:180px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div style="display:flex;gap:3px;width:110px;justify-content:center;">
+          <button id="fp-team2-a" onclick="fpSetTeam(2,'A')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">A</button>
+          <button id="fp-team2-b" onclick="fpSetTeam(2,'B')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">B</button>
+          <button id="fp-team2-c" onclick="fpSetTeam(2,'C')" style="padding:2px 6px;font-size:11px;background:#5a2a00;color:#fff;border:2px solid #000;">C</button>
+          <button id="fp-team2-d" onclick="fpSetTeam(2,'D')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">D</button>
+        </div>
+      </div>
+      <div id="fourp-t3" style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span style="font-family:'EB Garamond',Georgia,serif;font-size:13px;font-weight:700;color:#888888;width:70px;letter-spacing:0.08em;">● BLACK</span>
+        <div style="position:relative;flex:1;">
+          <button id="fourp-bot3-btn" onclick="toggleFpBotMenu(3)" style="width:100%;text-align:left;font-size:12px;padding:3px 10px;">Steve (700) ▾</button>
+          <div id="fourp-bot3-menu" style="display:none;position:absolute;bottom:110%;left:0;z-index:99;background:#f5f0d8;border:3px solid #000;box-shadow:4px 4px 0 #000;min-width:180px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div style="display:flex;gap:3px;width:110px;justify-content:center;">
+          <button id="fp-team3-a" onclick="fpSetTeam(3,'A')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">A</button>
+          <button id="fp-team3-b" onclick="fpSetTeam(3,'B')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">B</button>
+          <button id="fp-team3-c" onclick="fpSetTeam(3,'C')" style="padding:2px 6px;font-size:11px;background:#333;color:#888;border:2px solid #000;">C</button>
+          <button id="fp-team3-d" onclick="fpSetTeam(3,'D')" style="padding:2px 6px;font-size:11px;background:#0a4a20;color:#fff;border:2px solid #000;">D</button>
+        </div>
+      </div>
+      <div style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:rgba(245,200,0,0.5);text-align:center;padding-top:4px;border-top:1px solid rgba(245,200,0,0.15);" id="fp-team-summary">
+        A: Red &nbsp;·&nbsp; B: Blue &nbsp;·&nbsp; C: Yellow &nbsp;·&nbsp; D: Green
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ RESURRECTION DOUBLE BUGHOUSE ══ -->
+<div id="rdb-app">
+
+  <div style="width:100%;text-align:center;padding:10px 20px 6px;background:var(--blue-dark);border:4px solid var(--yellow);border-bottom:none;box-shadow:4px 4px 0 #000;">
+    <h1>💀 RESURRECTION DOUBLE BUGHOUSE</h1>
+    <div class="header-sub">Stevenson Chess Club · Two Boards · Simultaneous Mate Wins</div>
+  </div>
+
+  <div style="width:100%;padding:4px 12px;background:var(--cream);border-left:4px solid var(--yellow);border-right:4px solid var(--yellow);border-top:2px solid #000;border-bottom:2px solid #000;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:38px;">
+    <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0;">
+      <div id="rdb-status" style="font-family:'EB Garamond',Georgia,serif;font-size:13px;letter-spacing:.1em;color:var(--blue-dark);text-transform:uppercase;">Turn 1 — Player 1 to move</div>
+      <div id="rdb-msg" style="font-family:'EB Garamond',Georgia,serif;font-size:12px;letter-spacing:.1em;color:#cc0000;text-transform:uppercase;text-shadow:1px 1px 0 #ffaaaa;min-height:14px;"></div>
+    </div>
+  </div>
+
+  <div id="rdb-boards-row">
+
+    <!-- Board A -->
+    <div style="display:flex;gap:8px;align-items:flex-start;flex-direction:column;">
+      <div class="rdb-board-badge">⚔ Board A — P1=White · P2=Black</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <div class="rdb-hist-panel" id="rdb-hist-a">
+          <div class="rdb-hist-header">📋 Log A</div>
+          <div class="rdb-hist-list" id="rdb-hist-list-a"></div>
+          <div class="rdb-hist-footer" id="rdb-hist-foot-a">—</div>
+        </div>
+        <div style="display:flex;gap:4px;align-items:flex-start;">
+          <div id="rdb-ranks-a" style="display:flex;flex-direction:column;"></div>
+          <div>
+            <div id="rdb-board-a" style="display:grid;grid-template-columns:repeat(8,1fr);border:4px solid var(--yellow);box-shadow:4px 4px 0 #000;"></div>
+            <div id="rdb-files-a" style="display:flex;margin-left:18px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rdb-reserve-bar" style="border:2px solid var(--yellow);border-top:none;">
+        <span class="rdb-reserve-label">P1 reserve →</span>
+        <span class="rdb-reserve-pieces" id="rdb-res-p1">—</span>
+        <span class="rdb-reserve-label" style="margin-left:8px;">P2 reserve →</span>
+        <span class="rdb-reserve-pieces" id="rdb-res-p2">—</span>
+      </div>
+    </div>
+
+    <!-- Board B -->
+    <div style="display:flex;gap:8px;align-items:flex-start;flex-direction:column;">
+      <div class="rdb-board-badge" style="background:#ff88cc;border-color:#880044;">🔁 Board B — P1=Black · P2=White</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <div class="rdb-hist-panel" id="rdb-hist-b">
+          <div class="rdb-hist-header" style="background:#ff88cc;">📋 Log B</div>
+          <div class="rdb-hist-list" id="rdb-hist-list-b"></div>
+          <div class="rdb-hist-footer" id="rdb-hist-foot-b">—</div>
+        </div>
+        <div style="display:flex;gap:4px;align-items:flex-start;">
+          <div id="rdb-ranks-b" style="display:flex;flex-direction:column;"></div>
+          <div>
+            <div id="rdb-board-b" style="display:grid;grid-template-columns:repeat(8,1fr);border:4px solid #ff88cc;box-shadow:4px 4px 0 #000;"></div>
+            <div id="rdb-files-b" style="display:flex;margin-left:18px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rdb-reserve-bar" style="border:2px solid #ff88cc;border-top:none;background:#1a0008;">
+        <span class="rdb-reserve-label" style="color:#ff88cc;">⚡ Respawn → Board A:</span>
+        <span class="rdb-reserve-pieces" id="rdb-respawn">—</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Drop picker row — shown when a reserve piece is clicked -->
+  <div id="rdb-drop-row" style="display:none;width:100%;background:var(--black);border-left:4px solid var(--yellow);border-right:4px solid var(--yellow);padding:6px 12px;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:var(--yellow);letter-spacing:.1em;text-transform:uppercase;">Drop on B — click a square</span>
+    <button onclick="rdbCancelDrop()" style="font-size:11px;padding:3px 10px;background:rgba(255,0,0,0.15);color:#ff6666;border:2px solid rgba(255,0,0,0.4);cursor:pointer;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:2px 2px 0 #000;">✕ Cancel</button>
+    <span id="rdb-drop-piece-label" style="font-family:'EB Garamond',Georgia,serif;font-size:22px;color:var(--cream);"></span>
+  </div>
+
+  <!-- Kill mode banner -->
+  <div id="rdb-kill-banner" style="display:none;width:100%;background:#330000;border-left:4px solid var(--yellow);border-right:4px solid var(--yellow);padding:6px 12px;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:#ff6666;letter-spacing:.1em;text-transform:uppercase;">☠ Kill Mode — click one of your pieces to remove it (no turn used)</span>
+    <button onclick="RS.killMode=false;rdbRender();rdbMsg('');" style="font-size:11px;padding:3px 10px;background:rgba(255,0,0,0.15);color:#ff6666;border:2px solid rgba(255,0,0,0.4);cursor:pointer;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:2px 2px 0 #000;">✕ Cancel</button>
+  </div>
+
+  <!-- Discard reserve banner -->
+  <div id="rdb-discard-banner" style="display:none;width:100%;background:#1a0a00;border-left:4px solid var(--yellow);border-right:4px solid var(--yellow);padding:6px 12px;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;color:#ffaa44;letter-spacing:.1em;text-transform:uppercase;">🗑 Discard Mode — click a reserve piece below to remove it from your reserves</span>
+    <button onclick="RS.discardResMode=false;rdbRender();rdbMsg('');" style="font-size:11px;padding:3px 10px;background:rgba(255,0,0,0.15);color:#ff6666;border:2px solid rgba(255,0,0,0.4);cursor:pointer;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:2px 2px 0 #000;">✕ Cancel</button>
+  </div>
+
+  <!-- Controls bar -->
+  <div style="width:100%;background:var(--blue-dark);border:4px solid var(--yellow);border-top:3px solid var(--yellow-dark);padding:8px 12px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:4px 4px 0 #000;margin-top:4px;">
+    <button onclick="showModeSelect()">◀ Menu</button>
+    <button onclick="rdbReset()">New Game</button>
+    <button onclick="rdbUndo()">↩ Undo</button>
+    <button onclick="rdbTogglePicker()">Colors</button>
+    <button onclick="window.rdbToggleKill()" style="background:rgba(180,0,0,0.25);color:#ff6666;border:3px solid #cc0000;" title="Remove one of your own pieces (no turn used)">☠ Kill Unit</button>
+    <button onclick="window.rdbToggleDiscardRes()" style="background:rgba(180,80,0,0.2);color:#ffaa44;border:3px solid #aa5500;" title="Discard a piece from your reserves">🗑 Discard Reserve</button>
+    <div id="rdb-picker" style="display:none;flex-direction:row;gap:6px;padding:0 6px;justify-content:center;flex-wrap:wrap;">
+      <div id="rdb-theme-swatches" style="display:flex;gap:5px;align-items:center;"></div>
+    </div>
+  </div>
+  <!-- Bot selector row — dual bot team -->
+  <div id="rdb-bot-row" style="width:100%;background:var(--blue-dark);border:4px solid var(--yellow);border-top:none;padding:8px 12px;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;box-shadow:4px 4px 0 #000;flex-wrap:wrap;">
+    <span style="font-family:'EB Garamond',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--yellow);">P2 Team</span>
+
+    <!-- Mode toggle -->
+    <button id="rdb-split-btn" onclick="window.rdbToggleSplit()" style="font-size:11px;padding:3px 10px;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(245,200,0,0.12);color:var(--yellow);border:2px solid rgba(245,200,0,0.5);cursor:pointer;box-shadow:2px 2px 0 #000;" title="Switch between one bot for both boards vs separate bots per board">1 Bot Both ▸</button>
+
+    <!-- Board A bot -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;">
+      <span style="font-family:'EB Garamond',Georgia,serif;font-size:9px;color:rgba(245,200,0,0.6);letter-spacing:.1em;text-transform:uppercase;">⚔ Board A</span>
+      <button id="rdb-bot-btn-a" onclick="window.rdbToggleBotMenu('a')" style="font-size:11px;padding:3px 8px;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.06em;background:var(--cream);color:var(--black);border:2px solid #000;cursor:pointer;box-shadow:2px 2px 0 #000;white-space:nowrap;">🍺 Bob (300) ▾</button>
+    </div>
+
+    <!-- Board B bot — hidden when split=false -->
+    <div id="rdb-bot-b-wrap" style="display:none;flex-direction:column;align-items:center;gap:2px;position:relative;">
+      <span style="font-family:'EB Garamond',Georgia,serif;font-size:9px;color:rgba(255,136,204,0.8);letter-spacing:.1em;text-transform:uppercase;">🔁 Board B</span>
+      <button id="rdb-bot-btn-b" onclick="window.rdbToggleBotMenu('b')" style="font-size:11px;padding:3px 8px;font-family:'EB Garamond',Georgia,serif;font-weight:700;letter-spacing:.06em;background:var(--cream);color:var(--black);border:2px solid #880044;cursor:pointer;box-shadow:2px 2px 0 #000;white-space:nowrap;">🍺 Bob (300) ▾</button>
+    </div>
+
+    <!-- Floating bot dropdown -->
+    <div id="rdb-bot-menu" style="display:none;position:fixed;z-index:9999;background:var(--cream);border:3px solid #000;box-shadow:4px 4px 0 #000;min-width:200px;max-height:280px;overflow-y:auto;"></div>
+  </div>
+
+</div>
+
+<!-- RDB win overlay -->
+<div id="rdb-win-overlay">
+  <div style="font-family:'EB Garamond',Georgia,serif;font-size:clamp(60px,18vw,160px);font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#fff;text-shadow:6px 6px 0 rgba(0,0,0,0.4);-webkit-text-stroke:2px rgba(0,0,0,0.3);animation:word-pop .5s cubic-bezier(0.17,0.89,0.32,1.28) .1s both;line-height:1;">VICTORY</div>
+  <div id="rdb-win-sub" style="font-family:'EB Garamond',Georgia,serif;font-size:clamp(14px,3vw,22px);color:rgba(255,255,255,0.85);letter-spacing:3px;text-transform:uppercase;animation:word-pop .5s cubic-bezier(0.17,0.89,0.32,1.28) .2s both;">Simultaneous Double Checkmate</div>
+  <button onclick="rdbReset()" style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;background:#fff;color:#111;border:4px solid #000;padding:10px 30px;cursor:pointer;box-shadow:5px 5px 0 rgba(0,0,0,0.4);transition:all .08s;animation:word-pop .5s cubic-bezier(0.17,0.89,0.32,1.28) .35s both;">Play Again</button>
+</div>
+
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     STEVENSON CHESS — Modular JS
+     Edit one file at a time:
+       core.js          — Chess engine, piece SVGs, board state, themes, rendering
+       bots.js          — BOTS list, BOT_CHAT_LIST, minimax AI, bot menus
+       mode_2p.js       — 2-Player game: handleClick, resetGame, checkGameOver, political bots
+       mode_chesskers.js — Chesskers hybrid mode (Chess vs Checkers)
+       cheats.js        — Cheat code engine + all cheat functions
+       mode_4p.js       — 4-Player mode (14×14 canvas board)
+       mode_rdb.js      — Resurrection Double Bughouse (two boards)
+       settings.js      — Settings overlay + Sandbox board editor
+═══════════════════════════════════════════════════════════ -->
+<script src="core.js"></script>
+<script src="bots.js"></script>
+<script src="mode_2p.js"></script>
+<script src="mode_chesskers.js"></script>
+<script src="cheats.js"></script>
+<script src="mode_4p.js"></script>
+<script src="mode_rdb.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>
